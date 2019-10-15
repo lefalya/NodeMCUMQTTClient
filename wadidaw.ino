@@ -71,12 +71,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println();
 
   // Switch on the LED if an 1 was received as first character
-  if ((char)payload[0] == '1') {
-    digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
+  Serial.print(payload[0]);
+  if (payload[0] == 97) {
+    digitalWrite(D6, HIGH);   // Turn the LED on (Note that LOW is the voltage level
     // but actually the LED is on; this is because
     // it is acive low on the ESP-01)
   } else {
-    digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
+    digitalWrite(D6, LOW);  // Turn the LED off by making the voltage HIGH
   }
 
 }
@@ -92,9 +93,9 @@ void reconnect() {
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      client.publish("outTopic", "hello world");
+      client.publish("test", "hello world");
       // ... and resubscribe
-      client.subscribe("inTopic");
+      client.subscribe("testing");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -106,11 +107,13 @@ void reconnect() {
 }
 
 void setup() {
-  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+  pinMode(D6, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
   setup_wifi();
+  Serial.println("connected");
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+  
 }
 
 void loop() {
@@ -120,13 +123,16 @@ void loop() {
   }
   client.loop();
 
+
   long now = millis();
   if (now - lastMsg > 2000) {
     lastMsg = now;
     ++value;
-    snprintf (msg, 75, "hello world #%ld", value);
+    snprintf (msg, 75, "aku namanya nino #%ld", value);
     Serial.print("Publish message: ");
     Serial.println(msg);
     client.publish("test", msg);
+   
   }
+
 }
