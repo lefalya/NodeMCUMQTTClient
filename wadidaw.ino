@@ -71,13 +71,14 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.println();
 
   // Switch on the LED if an 1 was received as first character
-  Serial.print(payload[0]);
-  if (payload[0] == 97) {
-    digitalWrite(D6, HIGH);   // Turn the LED on (Note that LOW is the voltage level
+  Serial.print("payload ");
+  Serial.println(payload[0]);
+  if (payload[0] == 'a') {
+    digitalWrite(D5, HIGH);   // Turn the LED on (Note that LOW is the voltage level
     // but actually the LED is on; this is because
     // it is acive low on the ESP-01)
   } else {
-    digitalWrite(D6, LOW);  // Turn the LED off by making the voltage HIGH
+    digitalWrite(D5, LOW);  // Turn the LED off by making the voltage HIGH
   }
 
 }
@@ -107,7 +108,7 @@ void reconnect() {
 }
 
 void setup() {
-  pinMode(D6, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+  pinMode(D5, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
   setup_wifi();
   Serial.println("connected");
@@ -125,13 +126,21 @@ void loop() {
 
 
   long now = millis();
-  if (now - lastMsg > 2000) {
+  if (now - lastMsg > 500) {
     lastMsg = now;
     ++value;
-    snprintf (msg, 75, "aku namanya nino #%ld", value);
+
+    int sensorValue = analogRead(A0);   // read the input on analog pin 0
+
+    float voltage = sensorValue * (3.3 / 1023.0);   // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V)
+
+    Serial.println(voltage);   // print out the value you read
+    char buf[8];
+    sprintf(buf, "%f", voltage);
+    
     Serial.print("Publish message: ");
-    Serial.println(msg);
-    client.publish("test", msg);
+    Serial.println(buf);
+    client.publish("test", buf);
    
   }
 
