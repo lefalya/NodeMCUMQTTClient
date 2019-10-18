@@ -32,6 +32,13 @@ const char* ssid = "Lab Lanjut 121";
 const char* password = "TanyaAsisten";
 const char* mqtt_server = "192.168.121.104";
 
+const int trigPin = 5;  //D1
+const int echoPin = 16;  //D0
+bool ledState = LOW;
+
+long duration;
+int distance;
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 long lastMsg = 0;
@@ -73,14 +80,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // Switch on the LED if an 1 was received as first character
   Serial.print("payload ");
   Serial.println(payload[0]);
-  if (payload[0] == 'a') {
-    digitalWrite(D5, HIGH);   // Turn the LED on (Note that LOW is the voltage level
-    // but actually the LED is on; this is because
-    // it is acive low on the ESP-01)
-  } else {
-    digitalWrite(D5, LOW);  // Turn the LED off by making the voltage HIGH
+  if (payload[0] == '2') {
+    if (payload[2] == 'a') digitalWrite(D5, !ledState);   
+    ledState = !ledState;
   }
-
 }
 
 void reconnect() {
@@ -109,6 +112,9 @@ void reconnect() {
 
 void setup() {
   pinMode(D5, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+  
   Serial.begin(115200);
   setup_wifi();
   Serial.println("connected");
@@ -124,23 +130,33 @@ void loop() {
   }
   client.loop();
 
-
   long now = millis();
+  
   if (now - lastMsg > 500) {
     lastMsg = now;
     ++value;
+
 
     int sensorValue = analogRead(A0);   // read the input on analog pin 0
 
     float voltage = sensorValue * (3.3 / 1023.0);   // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V)
 
     Serial.println(voltage);   // print out the value you read
+
+   
     char buf[8];
     sprintf(buf, "%f", voltage);
-    
+
+     char messageDelivered[10];
+      strcpy(messageDelivered,"2");
+      strcat(messageDelivered," ");
+      strcat(messageDelivered,buf);
+//    
+    Serial.print("pre msg : ");
+    Serial.println(messageDelivered);
     Serial.print("Publish message: ");
-    Serial.println(buf);
-    client.publish("test", buf);
+    Serial.println(messageDelivered);
+    client.publish("test", messageDelivered);
    
   }
 
